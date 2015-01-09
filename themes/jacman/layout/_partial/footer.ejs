@@ -1,4 +1,5 @@
 <div id="footer" >
+
 	<% if(theme.author_img){ %>
 	<div class="line">
 		<span></span>
@@ -49,5 +50,8 @@
 		<% } else {%>
 		<a href="<%= config.url %>" title="<%= config.title %>"><%= config.title %></a>
 		<% } %>
+		<!-- Analytics Begin -->
+		<%- partial('analytics') %>
+		<!-- Analytics End -->
 		</p>
 </div>
