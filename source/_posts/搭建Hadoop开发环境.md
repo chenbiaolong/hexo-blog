@@ -3,10 +3,14 @@ date: 2015-03-26 16:01:30
 tags: hadoop
 category: 大数据
 ---
+
 ##概述
+
 在linux环境下编译调试java代码比较麻烦，为了方便，我在windows环境下利用 IDEA搭建了Hadoop的开发环境。只要在IDEA环境中导入Hadoop的核心包，就可以在IDEA环境下编译MapReduce程序，配置生成相应的jar包。通过将该jar包导入到linux服务器的hadoop集群，就可以运行相应的MapReduce程序了。在这里我以官方的WordCount程序作为例子。
 <!-- more -->
+
 ##IDEA新建maven项目
+
 首先在IDEA新建一个maven项目。具体新建过程参考http://guoze.me/2014/08/27/intellij-maven-develop-hadoop/ 
 我新建的工程为HelloHadoop，具体的pom.xml如下：
 ```xml
@@ -42,7 +46,9 @@ category: 大数据
 </project>
 ```
 我们使用的Hadoop测试集群Hadoop版本为2.6.0，具体的pom.xml配置需要根据你集群的具体发行版本修改。如果版本不一致将会出现hadoop集群无法正常运行MapReduce程序的情况。开发一个普通的Hadoop项目，我们一般需要hadoop-common、hadoop-core两组依赖；如果需要读取HDFS上的文件内容，则需要hadoop-hdfs和hadoop-client另外两组依赖；如果需要读取HBase的数据，则需要再加入hbase-client。这里我们只导入了hadoop-common和hadoop-core。
+
 ##编写WordCount MapReduce程序
+
 这里直接使用了官方的[代码][1]
 ```java
 import java.io.IOException;
@@ -111,14 +117,18 @@ public class WordCount {
 }
 ```
 需要注意的是需要在官方代码中加入`job.setJarByClass(WordCount.class);`这一行，具体解释可以参考[这里][2]。
+
 ##生成HelloHadoop jar包
+
 生成jar包的过程也比较简单，
 1.选择菜单File->Project Structure，弹出Project Structure的设置对话框。
 2.选择左边的Artifacts后点击上方的“+”按钮
 3.在弹出的框中选择jar->from moduls with dependencies..
 4.选择要启动的类，然后 确定
 5.应用之后，对话框消失。在IDEA选择菜单Build->Build Artifacts,选择Build或者Rebuild后即可生成，生成的jar文件位于工程项目目录的out/artifacts下。
+
 ##运行HelloHadoop jar包
+
 将生成的HelloHadoop.jar传送到hadoop集群的Name node节点上。
 处于测试目的，简单写了一个测试数据文本wctest.txt
 ```

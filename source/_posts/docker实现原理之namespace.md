@@ -3,7 +3,9 @@ date: 2015-02-26 19:26:25
 tags:  docker 基础工作原理
 category: docker
 ---
+
 ##概要
+
 传统上，linux很多资源是全局管理的，例如系统中所有的进程是通过pid标识的，这意味着内核管理着一个全局pid表，进程号必须为唯一的。类似的还有内核的文件系统挂载点数据信息、用户ID号等。我们知道，要实现虚拟化必须要有独立的资源分配，才能使容器之间不互相影响，那如何使这些全局表局域化呢？答案是namespace。Namespace将传统的全局资源变为某个名字空间的局域资源。目前linux内核实现的namespace主要有:
 <!-- more -->
 1.Mount namespace(CLONE_NEWNS):系统挂载点
@@ -13,7 +15,9 @@ category: docker
 5.Network namespace(CLONE_NEWNET):网络相关资源
 6.User namespace(CLONE_NEWUSER):用户ID
 可以看出，以上的这些系统资源在没有引入namespace时是由内核全局管理的。linux内核为了支持容器虚拟化功能，加入了以上6种namespace，实现这些全局系统资源局域化，使每一个namespace空间都拥有独立的一套系统资源。由于本文主要讲述docker虚拟化的实现原理，考虑到篇幅，将主要从内核角度简介linux的PID namespace。PID namespace使属于不同的名字空间的进程可以拥有相同的进程号，对实现docker的虚拟化至关重要。
+
 ##namespace内核相关结构
+
 在task_struct 结构中有一个结构体指针nsproxy。nsproxy结构体定义了内核支持的namespace。
 ```c
 struct task_struct {
@@ -59,7 +63,9 @@ struct nsproxy init_nsproxy = {
   #endif
   };
 ```
+
 ##PID namespace解析
+
 在这些namespace中，我们选取pid_namespace作为本文分析的重点，其他namespace的原理也大致相同。
 我们分析一下pid_namespace结构体：
 ```c
@@ -149,6 +155,7 @@ for (i = ns->level; i >= 0; i--) {
 ```
 
 ##小结
+
 本文主要对pid namespace进行分析，从内核代码实现角度论述namespace的实现机理。总的来说，namespace将linux内核的一些全局资源局域化，它是docker实现虚拟化的核心基础。通过namespace，linux的一些传统全局资源就可以被具体某个名字空间独立占有，各个名字空间的资源不会相互冲突，起到环境隔离的作用。需要注意的是namespace隔离的系统资源是类似于PID号等内核资源，而非CPU 内存等实际物理资源。docker的物理资源限制和控制是通过Cgroup实现的。
 
 

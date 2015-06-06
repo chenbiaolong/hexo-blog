@@ -83,6 +83,9 @@ duoshuo_shortname: chenbiaolong
 # Extensions
 ## Plugins: https://github.com/hexojs/hexo/wiki/Plugins
 ## Themes: https://github.com/hexojs/hexo/wiki/Themes
+plugins: 
+- hexo-math
+
 #theme: landscape
 theme: jacman
 exclude_generator:
@@ -93,5 +96,6 @@ deploy:
   type: github
   repository: https://gitcafe.com/chenbiaolong/chenbiaolong.git
   branch: gitcafe-pages
+
 
 

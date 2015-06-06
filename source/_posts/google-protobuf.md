@@ -5,6 +5,7 @@ tags: protobuf
 ---
 
 ###简介
+
 Google Protocol Buffer( 简称 Protobuf) 是 Google 公司内部的混合语言数据标准，目前已经正在使用的有超过 48,162 种报文格式定义和超过 12,183 个 .proto 文件。他们用于 RPC 系统和持续数据存储系统。
 Protocol Buffers 是一种轻便高效的结构化数据存储格式，可以用于结构化数据串行化，或者说序列化。它很适合做数据存储或 RPC 数据交换格式。可用于通讯协议、数据存储等领域的语言无关、平台无关、可扩展的序列化结构数据格式。目前提供了 C++、Java、Python 三种语言的 API。
 
@@ -47,6 +48,7 @@ required int32 id=1;
 ```
 
 ###编写writer.cpp
+
 ```cpp
 #include "hello.pb.h"
 #include <fstream>
@@ -86,7 +88,9 @@ str: "hello"
 [root@localhost protobuf]# 
 ```
 当前路径下保存了log文件，reader可以从该文件解析出数据原来的内容。
+
 ###编写reader.cpp
+
 ```cpp
 #include "hello.pb.h"
 #include <fstream>

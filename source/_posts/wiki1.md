@@ -4,12 +4,15 @@ tags: hadoop
 category: 大数据
 ---
 ##概要
+
 本文主要根据mahout in action第六章分析维基百科链接数据的例子编写。大部分内容是直接翻译的mahout in action，不过不是逐字翻译，加入了一些个人理解。关于本文的前提背景可以参考其他博主翻译的文章：
 [Mahout in action 中文版-6.分布式推荐计算-6.1][1]
 [Mahout in action 中文版-6.分布式推荐计算-6.2][2]
 
 <!-- more -->
+
 ##6.3.2 使用MapReduce：生成用户向量
+
 在这个例子中，我们主要目的是利用`item-base`的推荐算法实现维基百科网页的推荐。基础理论就是：如果网页A和网页B同时被多个网页同时引用，那么我们就可以推测网页A和网页B的内容相近。当一个用户看了网页A时，我们可以考虑将网页B推荐给它。计算的输入文件是维基百科的链接数据文件，这个文件的每一行数据并不是按照`userId`,`itemId`,`preference`格式排列的，而是按照`userID:itemID1 itemID2 itemID3 ...`格式排列。这个格式代表的意义是ID为`userID`的网页有指向ID为`itemID1`,`itemID2...`网页的超链接。可以在[这里][3]获得所需要的维基百科链接数据文件。将这个文件传送到HDFS文件系统，以便Hadoop集群使用该文件。
 为了实现网页推荐功能，我们需要2次的MapReduce操作。
 
@@ -61,7 +64,9 @@ public static class WikipediaToUserVectorReducer extends
 }
 ```
 可以看出，实际上第一次MapReduce操作只是将`varLongWritable`的`itemID`转换成`vectorWritable`类型的`userVector`。
+
 ##6.3.3 使用MapReduce：计算共现值
+
 下一个MapReduce操作将根据第一个Mapreduce的结果计算出各个item的共现值(co-occurrence)。这里对共现值简单做一个解释：比如网页A和网页B同时被网页C、D、E链接，那么网页A和网页B的共现值为3。第二个MapReduce函数
 
  1. 输入是用户ID与用户喜好向量键值对——即第一次MapReduce结果。比如`98955/[590:1.0,22:1.0,9059:1.0]`
@@ -123,6 +128,7 @@ public class UserVectorToCooccurrenceReducer extends
 ```
 
 ##小结
+
 本文主要解释了实现维基百科网页推荐的基础原理：通过网页之间的共现值判断网页之间的是否相似。本质上就是`item-base`类型的推荐算法。更详细的内容可以参考`mahout in action`的相关章节。由于`mahout in action`只是给出了mapreduce的实现算法，具体利用`hadoop`运行这两个mapreduce操作时会出现一些问题：比如有一些class在新版本的`hadoop`已经作了调整;这里的两个mapreduce操作存在相互依赖如何利用`hadoop`接口解决等。在下一篇文章中我将给出实现这两个mapreduce操作的相应工程代码。
 
 

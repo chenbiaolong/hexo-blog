@@ -6,8 +6,11 @@ category: 大数据
 ##概要
 这篇文章主要论述我在实现[上一篇文章][1]所述功能时的具体操作过程。因为`hadoop`现在有两套新旧API接口，因此在实现过程中需要十分注意你import进来的class是属于新的API还是旧的API。本文的所使用的`hadoop`版本是`2.6`版本。
 <!-- more -->
+
 ##工程准备
+
 ###数据准备
+
 `mahout in action`用的是[维基百科的数据][2]，数据量较大，考虑到不便于验证我们的测试程序是否运行正确，我们这里用的是自己写的一个小数据文件`mywiki.txt`
 ```shell
 100 101 102 103
@@ -23,10 +26,14 @@ category: 大数据
 110 108 105
 ```
 每一行代表的数分别是`userID` `itemID1` `itemID2`。
+
 ###利用Intellij IDEA建立maven工程
+
 具体流程在我[前面的文章][3]有论述。这里给出工程布局以及`pom.xml`文件:
 wiki项目工程文件：
+
 ![此处输入图片的描述][4]
+
 简单说明一下，这里` WikipediaToItemPrefsMapper`和`WikipediaToUserVectorReducer`是第一次MapReduce操作， `UserVectorToCooccurrenceMapper`和`UserVectorToCooccurrenceReducer`是第二次MapReduce操作。这两次MapReduce操作分别完成的功能同样可以参考[上一篇文章][5]。
 wiki项目的`pom.xml`
 ```xml
@@ -94,6 +101,7 @@ wiki项目的`pom.xml`
 特别提醒一下，这个`pom.xml`是根据我集群的实际环境配置的`hadoop 2.6`版本，`mahout 0.9`版本。如果你们的集群环境和我的不一样，需要进行一些调整。
 
 ##工程源码
+
 工程源码大部分与`mahout in action`一样，根据实际情况进行了一些调整。
 `WikipediaToItemPrefsMapper.java`
 ```java
@@ -324,7 +332,9 @@ public class wikiDriver {
 }
 
 ```
+
 ##打包运行
+
 将wiki工程打成jar包，上传到linux服务器运行。具体的打包过程参考我[前面写的文章][6]。
 接下来将测试数据文件上传到hdfs
 ```shell

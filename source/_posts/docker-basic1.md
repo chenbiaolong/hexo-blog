@@ -4,6 +4,7 @@ tags: docker 基础工作原理
 category: docker
 ---
 ## 概述
+
 相信很多人和我一样，初学docker时一直无法搞懂docker镜像的工作机理。这几天对docker如何工作进行了一番研究，简单整理一下。
 docker的两大核心基础技术是[namespace](http://lwn.net/Articles/531114/)和cgroup，cgroup主要作资源的限制隔离，它可以限制一组进程中能使用的最大资源使用量，相对比较好理解；namespace同样可以实现资源隔离，不同的是它是通过使PID,IPC,Network等系统资源不再是全局性的，而是属于特定的Namespace实现的。每个Namespace里面的资源对其他Namespace都是透明的，这个概念有点类似于linux的多用户机制。
 <!-- more -->
@@ -24,7 +25,9 @@ provide isolation of the system resources associated with networking. Thus, each
 isolate the user and group ID number spaces. In other words, a process's user and group IDs can be different inside and outside a user namespace. The most interesting case here is that a process can have a normal unprivileged user ID outside a user namespace while at the same time having a user ID of 0 inside the namespace. This means that the process has full root privileges for operations inside the user namespace, but is unprivileged for operations outside the namespace. 
 
 在这篇博文中，将主要介绍PID namespace和mount namepace。通过这两个namespace模拟docker在基础文件系统中运行的原理。我们将利用busybox建立一个可以满足linux系统运行的基础环境，并且通过chroot切换根目录，实现环境隔离。
+
 ## 利用chroot和busybox实现文件系统隔离
+
 chroot可以实现根路径的切换，但如果新的根路径环境下没有基础库和程序（比如bash），那么chroot将不能正常切换根路径。busybox提供了能保证linux系统正常运行的基础工具（如bash、ls等命令工具），我们可以利用chroot+busybox在我们本地系统中建立一个新的沙箱系统（当然此时并没有名字空间的隔离，只是根文件系统实现了隔离）。
 首先从官方[下载busybox的源码](http://www.busybox.net/downloads/)，这里我使用的是1.22版本。解压后直接使用默认配置,然后运行make,make install。
 ```shell
@@ -75,7 +78,9 @@ bin      lib64    linuxrc  sbin     usr
 ```
 从11行起可以看出chroot已经成功完成根路径切换，现在运行在busybox搭建的根路径环境下。
 但实际上现在根路径并不是完整的，可以看出busybox搭建的根文件系统并没有/proc和/dev等目录，在该环境下允许top等指令并不能正常允许。接下来是namespace发挥作用的时候了。
+
 ## namespace隔离
+
 以下内容主要来源于[linux namespace简介](http://blog.lucode.net/linux/intro-Linux-namespace-1.html)系列文章。这里我们直接使用文中的测试代码。
 ```c
 //namespace.c
@@ -145,7 +150,9 @@ PID   USER     TIME   COMMAND
 / # 
 ```
 现在在当前根路径下已经基本实现了名字空间的隔离和文件系统的隔离，一个沙箱系统的雏形已经实现。docker的运行的基础原理也大致如此，不过现在还没有添加进cgroup。
+
 ## busybox 基础镜像制作
+
 现在考虑将当前的busybox环境打成一个基础镜像。
 ```shell
 [root@localhost _install]# tar --numeric-owner -cvf  ../BusyBox-test.tar ./
@@ -258,5 +265,7 @@ exit
 [root@localhost 8d24158476ecbdea530dc210bda9b60970dd809d10a914ae19c83e8359396653]# 
 ```
 docker可以根据这个diff信息构建出新的工作环境。
+
 ## 总结
+
 docker实现资源隔离的两大linux基础技术是:namespace和cgroup。并且通过chroot实现运行的根目录环境切换。在这篇博文中主要简单模拟了docker的namespace和chroot工作流程，并且介绍了制作基础镜像的过程。本篇博文只是很概要的模拟docker工作原理，具体的详细流程需要继续分析docker的源码。

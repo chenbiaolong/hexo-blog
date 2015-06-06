@@ -95,7 +95,9 @@ dmsetup create pool \
 
 当启动容器后将会从该存储池中分配出10G(默认值)空间创建thin volume，用来存储镜像和容器文件系统的数据。这个过程具体是通过快照(snapshot)实现的。因此同一个镜像可以通过快照被多个容器使用，当容器修改镜像时，通过copy on write实现镜像的修改。
 综合来看，docker的存储结构如下图所示
+
 ![docker存储结构](/img/docker-devicemapper.png)
+
 比如创建一个apache容器时devicemapper处理流程如下所示：
 1.Create a snapshot of the base device.
 2.Mount it and apply the changes in the fedora image.

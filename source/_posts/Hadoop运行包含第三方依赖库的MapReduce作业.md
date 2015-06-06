@@ -4,7 +4,9 @@ tag: hadoop
 category: 大数据
 # Hadoop运行包含第三方依赖库的MapReduce作业
 ---
+
 ##概述
+
 最近打算学习一下利用hadoop搭建机器学习平台，因为mahout这个机器学习库资料比较多，因此就根据《mahout in action》这本书学习了一下如何搭建hadoop+mahout的机器学习平台。
 由于mahout in action只是列出了部分代码，具体的环境搭建书上写的并不多。在编写依赖于mahout的MapReduce函数时经常会出现`ClassNotFoundException: org.apache.mahout.math.Vector`等类似错误。在网上找了很多的资料，但大都是从配置服务器`HADOOP_CLASSPATH`等角度出发的。这些方法要求将第三方依赖库拷贝到对应的`HADOOP_CLASSPATH`路径下,或者更改相应的环境变量使`hadoop`能识别相应的依赖库。这种做法的问题是需要更改服务器的工作环境，当未来应用程序需要更新依赖库时需要替换服务器的jar包。而且，即使我将mahout的两个主要依赖包`mahout-core-0.9.jar`和` mahout-math-0.9.jar`加入到对应的`HADOOP_CLASSPATH`路径依然无法解决`ClassNotFoundException`问题。
 <!-- more -->
@@ -83,7 +85,9 @@ Caused by: java.lang.ClassNotFoundException: org.apache.mahout.math.VectorWritab
 	... 9 more
 ```
 可见，`mahout-math-0.9.jar`和`mahout-core-0.9.jar`是冲突的，HADOOP运行只能加载一个jar包。
+
 ##Mahout+Hadoop MapReduce函数编写
+
 本文所用的例子是根据《mahout in action》第6.2节分析维基百科数据的例子来的。不过这里只是为了熟悉mahout的用法，因此对这个例子进行了大幅度简化，只实现了第一个mapreduce，并且测试数据也是自己写的小文件。
 首先，给出自己写的测试文件`mywiki.txt`内容
 ```
@@ -240,10 +244,14 @@ public class mapred1 extends Configured implements org.apache.hadoop.util.Tool {
     }
 ```
 这个mapreduce函数相对比较简单，map函数给出的结果是一个`userID`和一个`itemID`的数据集，reduce函数根据`userID`设置对应`itemID`的vector。这里一个`itemID`的vector对应值只有0和1两种，因为网页链接只有有和没有两种情况。
+
 ##将mapreduce函数和mahout依赖打成jar包
+
 这里需要解决概述小节中提到的包依赖和包冲突问题。主要参考文章[`How-to: Include Third-Party Libraries in Your MapReduce Job`][2].这篇文章中提到了用3种方案解决第三方依赖包的依赖问题，我这里用的是第二种方案。
 打开IDEA的`File-->Project Structure`对话框，在`Project Setting`的`Artifacts`配置要生成的jar包属性。在左边栏中新建一个`lib`目录，将依赖的jar包文件添加到该目录里面：我们这个工程主要有`mahout-core`和`mahout-math`两个jar包依赖。具体如下图：
+
 ![此处输入图片的描述][3]:
+
 确认后将生成的jar包上传到Hadoop服务器集群的namenode节点。这时再继续用`hadoop jar`命令运行
 ```shell
 [hdfs@localhost wiki]$ hadoop jar HelloHadoop.jar org.apache.mahout.wiki.mapred1 /user/chenbiaolong/data/mywiki.txt /user/chenbiaolong/wiki_output
@@ -335,7 +343,9 @@ public class mapred1 extends Configured implements org.apache.hadoop.util.Tool {
 [hdfs@localhost wiki]$ 
 ```
 可以看出mapreduce函数得到了我们需要的结果。
+
 ##依赖解决原理分析
+
 为什么通过上小节这种方式可以解决依赖问题呢？[`How-to: Include Third-Party Libraries in Your MapReduce Job`][4]这篇文章说明了原因：
 
 >  Include the referenced JAR in the lib subdirectory of the submittable JAR: A MapReduce job will unpack the JAR from this subdirectory into ${mapred.local.dir}/taskTracker/${user.name}/jobcache/$jobid/jars on the TaskTracker nodes and point your tasks to this directory to make the JAR available to your code. If the JARs are small, change often, and are job-specific this is the preferred method.
@@ -343,7 +353,9 @@ public class mapred1 extends Configured implements org.apache.hadoop.util.Tool {
 在利用`hadoop jar`命令运行作业时，hadoop会自动解压作业jar包里`lib`文件夹的jar文件。因此当我们在`lib`文件夹加入所依赖的第三方jar包（`mahout-core`和`mahout-math`）时，hadoop将会自动将这两个jar包解压，并不会判断这两个jar包是否冲突。因为`mahout-core`和`mahout-math`虽然共同拥有`org.apache.mahout.math`这个包路径，但里面的class并没有重复冲突。因此当这两个jar包解压时得到的`org.apache.mahout.math`是`mahout-core`和`mahout-math`的合集，也就不会出现前面提到的类未找到错误了。
 
 ##参考文献
+
 (1) [How-to: Include Third-Party Libraries in Your MapReduce Job][5]
+
 (2) [Hadoop 实现协同过滤算法（1）][6]
 
 

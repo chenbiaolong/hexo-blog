@@ -3,11 +3,15 @@ date: 2015-02-27 15:11:54
 tags:  docker 基础工作原理
 category: docker
 ---
+
 ##概要
+
 cgroups是control groups的缩写，是Linux内核提供的一种可以限制、记录、隔离进程组（process groups）所使用的物理资源（如：cpu,memory,IO等等）的机制。上篇博客写的namespace作用是使linux的全局资源局域化，使各个名字空间的系统环境相互隔离，互不影响。而cgroup可以限制资源使用的最大值，限制当前进程组对外的最大影响（但无法隔离其他进程对自己的影响）。namespace与cgroup相互配合将使容器具备环境隔离和资源限制的能力，再加上镜像提供的根目录环境，使用chroot即可以为容器提供一个隔离的根目录环境。
 本文将主要从内核源码的角度分析docker常用的cgroup资源限制功能：cpuset memory 和blkio。
 <!-- more -->
+
 ##cgroup 子系统介绍
+
 blkio -- 这个子系统为块设备设定输入/输出限制，比如物理设备（磁盘，固态硬盘，USB 等等）。
 cpu -- 这个子系统控制cgroup中所有进程可以使用的时间片。
 cpuacct -- 这个子系统自动生成 cgroup 中任务所使用的 CPU 报告。
@@ -33,7 +37,9 @@ echo '22751' > mytest/tasks
 ```
 这三条指令的意思是设定该进程组只能使用cpu1，内存节点使用0，将进程22751加入该cgroup。
 接下来我们将以cpuset、mem、blkio为例，简单说明内核是如何进行资源限制的。
+
 ##cpuset子系统
+
 我们先看一下cpuset数据结构：
 ```c
 struct cpuset {
@@ -92,6 +98,7 @@ set_task_cpu(p, select_task_rq(p, task_cpu(p), SD_BALANCE_FORK, 0));
 对于已经存在的进程，实现的原理也大致相同。对于完全公平调度CFS算法，内核是通过调用`select_task_rq_fair`从允许的cpu核中选择一个合适的cpu id返回，然后加入任务队列，等待调度运行。
 
 ##memory子系统
+
 memory子系统是通过linux的resource counter机制实现的。在具体实现的过程中，cgroup通过内核中的resource counter机制实现内存的限制。resource counter相当于一个通用的资源计数器，在内核中通过res_counter结构来描述。该结构可用于记录某类资源的当前使用量、最大使用量以及上限等信息。mem_cgroup定义如下：
 ```
 struct mem_cgroup {
@@ -162,6 +169,7 @@ int res_counter_charge_locked(struct res_counter *counter, unsigned long val)
 这里需要注意的是memory系统是限制实际分配的物理内存大小,而非应用程序申请的虚拟内存。只有真正申请物理内存时（page demand 或者copy on write等)，该内存才会被计入res_counter。应用程序调用malloc申请的是虚拟内存，实际使用了多少物理内存必须从内核获得：/proc目录。因此，在docker里可以malloc到远大于限制值的虚拟内存，但当实际要使用超过设置值的内存时该进程会被内核的OOM（out of memory ）killer机制杀死，关于OOM机制可以查阅相关的文档，在做相关测试时需要注意虚拟内存大小与实际物理内存大小的区别。
 
 ##blkio子系统
+
 blkio子系统可以设置块设备的两个维度：
 1.Weight值。可以对不同的设备设置不同的权重，让权重更高的设备执行更多的IO操作
 2.IO操作速度上限值。可以设置块设备的最大读写速度。
@@ -224,6 +232,7 @@ cgroup限制IO速度大小的具体原理是设置IO队列，每隔一段时间�
 磁盘设备限制读写速度为1MB/s，但当在短时间内有大量的IO操作时磁盘的读写速度在瞬间远超过限定值。随后速度马上变小。
 
 ##小结
+
 本文主要分析cgroup的cpuset 子系统 memory子系统和blkio子系统。这三个系统是docker比较常用的资源限定项，docker建立的每一个容器都是一个cgroup控制组，在docker里运行的进程都处于cgroup系统的控制中。docker通过对linux内核cgroup进行封装，达到资源控制的作用。
 
   [1]: http://7u2qr4.com1.z0.glb.clouddn.com/blog_cgroup1.png
