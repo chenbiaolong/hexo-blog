@@ -5,7 +5,7 @@ category: 机器学习
 mathjax: true
 ---
 ##概要
-由于hexo对latex支持的不是很好，本文的数学公式显示有些问题，待解决。请访问[这个链接](https://zybuluo.com/chenbiaolong/note/104505)阅读
+如果您访问该网页时公式显示不正常，请访问[这个链接](https://zybuluo.com/chenbiaolong/note/104505)阅读
 
 
 ASM是一种基于点分布模型（Point Distribution Model,PDM）的算法。在PDM中，外形相似的物体，例如人脸、人手、心脏、肺部等的几何形状可以通过若干关键特征点（landmarks）的坐标依次串联形成一个形状向量来表示。ASM算法需要通过人工标定的方法先标定训练集，经过训练获得形状模型，再通过关键点的匹配实现特定物体的匹配。ASM 的优点是
