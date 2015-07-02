@@ -94,8 +94,9 @@ exclude_generator:
 ## Docs: http://hexo.io/docs/deployment.html
 deploy:
   type: github
-  repository: https://gitcafe.com/chenbiaolong/chenbiaolong.git
-  branch: gitcafe-pages
+  repository: https://github.com/chenbiaolong/chenbiaolong.github.io.git
+  branch: master
 
-
+ ##repository: https://gitcafe.com/chenbiaolong/chenbiaolong.git
+ ##branch: gitcafe-pages
 
